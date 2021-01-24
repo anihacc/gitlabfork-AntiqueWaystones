@@ -19,10 +19,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
-// The value here should match an entry in the META-INF/mods.toml file
 @Mod(AntiqueWaystones.MODID)
 public class AntiqueWaystones {
-    // Directly reference a log4j logger.
     public static final String MODID = "antiquewaystones";
     private static final Logger LOGGER = LogManager.getLogger();
     private static final MarkerAPI markerAPI = AtlasAPI.getMarkerAPI();
@@ -30,14 +28,7 @@ public class AntiqueWaystones {
     private static final ResourceLocation IMAGE_ID = new ResourceLocation(MODID, "waystone");
 
     public AntiqueWaystones() {
-//        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-//        // Register the enqueueIMC method for modloading
-//        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
-//        // Register the processIMC method for modloading
-//        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
-        // Register the doClientStuff method for modloading
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::initClient);
-        // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
     }
 
@@ -45,7 +36,6 @@ public class AntiqueWaystones {
         LOGGER.debug("Init waystone marker");
         MarkerType markerType = new MarkerType(IMAGE_PATH);
         markerAPI.registerMarker(IMAGE_ID, markerType);
-//        markerType.initMips();
     }
 
     @SubscribeEvent
@@ -53,16 +43,14 @@ public class AntiqueWaystones {
         PlayerEntity player = event.getPlayer();
         IWaystone waystone = event.getWaystone();
 
-        MarkerType markerType = MarkerType.REGISTRY.getOrDefault(IMAGE_ID);//antiqueatlas:tower
+        MarkerType markerType = MarkerType.REGISTRY.getOrDefault(IMAGE_ID);
         BlockPos pos = waystone.getPos();
+
+        LOGGER.debug("Adding marker to player atlases: " + waystone.getName());
         List<Integer> playerAtlases = AtlasAPI.getPlayerAtlases(player);
         for (int id : playerAtlases) {
             markerAPI.putMarker(player.world, true, id, markerType, new StringTextComponent(waystone.getName()), pos.getX(), pos.getZ());
         }
-        LOGGER.debug("START");
-        MarkerType.REGISTRY.iterator().forEachRemaining((i) -> LOGGER.debug(i.getIcon()));
-        LOGGER.debug("END");
-        LOGGER.debug(markerType);
     }
 
 }
