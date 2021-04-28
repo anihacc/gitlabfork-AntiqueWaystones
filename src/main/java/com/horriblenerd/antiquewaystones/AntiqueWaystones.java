@@ -14,7 +14,9 @@ import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -35,6 +37,7 @@ public class AntiqueWaystones {
     private final boolean isTowersOfTheWildLoaded;
 
     public AntiqueWaystones() {
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.COMMON_CONFIG);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::initClient);
         isTowersOfTheWildLoaded = ModList.get().isLoaded(TOWERS_MODID);
         MinecraftForge.EVENT_BUS.register(this);
@@ -53,7 +56,7 @@ public class AntiqueWaystones {
 
         BlockPos pos = waystone.getPos();
         MarkerType markerType = MarkerType.REGISTRY.getOrDefault(IMAGE_ID);
-        if (isTowersOfTheWildLoaded) {
+        if (isTowersOfTheWildLoaded && Config.USE_TOWER_ICON.get()) {
             if (player.world instanceof ServerWorld) {
                 if (isTower((ServerWorld) player.world, pos)) {
                     LOGGER.debug("Found a tower at: " + pos.toString());
