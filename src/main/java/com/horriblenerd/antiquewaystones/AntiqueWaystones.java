@@ -56,20 +56,22 @@ public class AntiqueWaystones {
         IWaystone waystone = event.getWaystone();
 
         BlockPos pos = waystone.getPos();
-        MarkerType markerType = MarkerType.REGISTRY.get(IMAGE_ID);
+//        MarkerType markerType = MarkerType.REGISTRY.getOrDefault(IMAGE_ID);
+        ResourceLocation ID = IMAGE_ID;
         if (isTowersOfTheWildLoaded && Config.USE_TOWER_ICON.get()) {
-            if (player.level instanceof ServerWorld) {
-                if (isTower((ServerWorld) player.level, pos)) {
+            if (player.world instanceof ServerWorld) {
+                if (isTower((ServerWorld) player.world, pos)) {
                     LOGGER.debug("Found a tower at: " + pos);
-                    markerType = MarkerType.REGISTRY.get(ResourceLocation.tryParse("antiqueatlas:tower"));
+//                    markerType = MarkerType.REGISTRY.getOrDefault(ResourceLocation.tryCreate("antiqueatlas:tower"));
+                    ID = ResourceLocation.tryCreate("antiqueatlas:tower");
                 }
             }
 
         }
-        LOGGER.debug("Adding marker to player atlases: " + waystone.getName());
+        LOGGER.debug("Adding marker to player atlases: " + waystone.getName() + " with markerType: " + ID);
         List<Integer> playerAtlases = AtlasAPI.getPlayerAtlases(player);
         for (int id : playerAtlases) {
-            markerAPI.putMarker(player.level, true, id, markerType.getIcon(), new StringTextComponent(waystone.getName()), pos.getX(), pos.getZ());
+            markerAPI.putMarker(player.world, true, id, ID, new StringTextComponent(waystone.getName()), pos.getX(), pos.getZ());
         }
     }
 
@@ -79,11 +81,11 @@ public class AntiqueWaystones {
         BlockPos structurePos;
 
         for (String s : Arrays.asList("tower", "ice_tower", "jungle_tower", "derelict_tower", "derelict_grass_tower", "ocean_tower", "ocean_warm_tower")) {
-            structure = ForgeRegistries.STRUCTURE_FEATURES.getValue(ResourceLocation.tryParse(TOWERS_MODID + ":" + s));
+            structure = ForgeRegistries.STRUCTURE_FEATURES.getValue(ResourceLocation.tryCreate(TOWERS_MODID + ":" + s));
             if (structure == null) {
                 continue;
             }
-            structurePos = world.findNearestMapFeature(structure, pos, 2, false);
+            structurePos = world.getStructureLocation(structure, pos, 2, false);
             if (structurePos != null) {
                 // Manhattan distance without Y coord
                 float f = (float) Math.abs(pos.getX() - structurePos.getX());
