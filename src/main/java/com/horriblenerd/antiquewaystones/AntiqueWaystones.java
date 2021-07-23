@@ -1,7 +1,7 @@
 package com.horriblenerd.antiquewaystones;
 
-import hunternif.mc.impl.atlas.api.AtlasAPI;
-import hunternif.mc.impl.atlas.api.MarkerAPI;
+import hunternif.mc.api.AtlasAPI;
+import hunternif.mc.api.MarkerAPI;
 import hunternif.mc.impl.atlas.registry.MarkerType;
 import net.blay09.mods.waystones.api.IWaystone;
 import net.blay09.mods.waystones.api.WaystoneActivatedEvent;
@@ -46,7 +46,8 @@ public class AntiqueWaystones {
     private void initClient(FMLClientSetupEvent event) {
         LOGGER.debug("Init waystone marker");
         MarkerType markerType = new MarkerType(IMAGE_PATH);
-        markerAPI.registerMarker(IMAGE_ID, markerType);
+        MarkerType.register(IMAGE_ID, markerType);
+//        markerAPI.registerMarker(IMAGE_ID, markerType);
     }
 
     @SubscribeEvent
@@ -55,12 +56,12 @@ public class AntiqueWaystones {
         IWaystone waystone = event.getWaystone();
 
         BlockPos pos = waystone.getPos();
-        MarkerType markerType = MarkerType.REGISTRY.getOrDefault(IMAGE_ID);
+        MarkerType markerType = MarkerType.REGISTRY.get(IMAGE_ID);
         if (isTowersOfTheWildLoaded && Config.USE_TOWER_ICON.get()) {
-            if (player.world instanceof ServerWorld) {
-                if (isTower((ServerWorld) player.world, pos)) {
-                    LOGGER.debug("Found a tower at: " + pos.toString());
-                    markerType = MarkerType.REGISTRY.getOrDefault(ResourceLocation.tryCreate("antiqueatlas:tower"));
+            if (player.level instanceof ServerWorld) {
+                if (isTower((ServerWorld) player.level, pos)) {
+                    LOGGER.debug("Found a tower at: " + pos);
+                    markerType = MarkerType.REGISTRY.get(ResourceLocation.tryParse("antiqueatlas:tower"));
                 }
             }
 
@@ -68,7 +69,7 @@ public class AntiqueWaystones {
         LOGGER.debug("Adding marker to player atlases: " + waystone.getName());
         List<Integer> playerAtlases = AtlasAPI.getPlayerAtlases(player);
         for (int id : playerAtlases) {
-            markerAPI.putMarker(player.world, true, id, markerType, new StringTextComponent(waystone.getName()), pos.getX(), pos.getZ());
+            markerAPI.putMarker(player.level, true, id, markerType.getIcon(), new StringTextComponent(waystone.getName()), pos.getX(), pos.getZ());
         }
     }
 
@@ -78,11 +79,11 @@ public class AntiqueWaystones {
         BlockPos structurePos;
 
         for (String s : Arrays.asList("tower", "ice_tower", "jungle_tower", "derelict_tower", "derelict_grass_tower", "ocean_tower", "ocean_warm_tower")) {
-            structure = ForgeRegistries.STRUCTURE_FEATURES.getValue(ResourceLocation.tryCreate(TOWERS_MODID + ":" + s));
+            structure = ForgeRegistries.STRUCTURE_FEATURES.getValue(ResourceLocation.tryParse(TOWERS_MODID + ":" + s));
             if (structure == null) {
                 continue;
             }
-            structurePos = world.func_241117_a_(structure, pos, 2, false);
+            structurePos = world.findNearestMapFeature(structure, pos, 2, false);
             if (structurePos != null) {
                 // Manhattan distance without Y coord
                 float f = (float) Math.abs(pos.getX() - structurePos.getX());
